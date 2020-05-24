@@ -26,15 +26,23 @@ void Ray::send()
 
 		boost::asio::ip::tcp::socket socket(io_service, endpoint.protocol());
 
-		socket.connect(endpoint);
+		//socket.connect(endpoint);
 
-		boost::asio::write(socket, boost::asio::buffer(ray_send));
+		std::cout << ray_send << std::endl;
+
+		//boost::asio::write(socket, boost::asio::buffer(ray_send));
 	}
 	catch (boost::system::system_error& e)
 	{
-		std::cout << "Error occured! Error code = " << e.code() << ". Message: " << e.what() << std::endl;
-
 		return;
 	}
 }
 
+bool Ray::operator==(Ray& ray)
+{
+	for (size_t i = 0; i < 3; ++i)
+	{
+		if (ray.begin[i] != begin[i] || (ray.cos[i] != cos[i])) return false;
+	}
+	return true;
+}

@@ -10,11 +10,9 @@ Lense::Lense(json& j)
 	centre = j["centre"].get<std::valarray<double>>();
 
 }
-double Lense::aperture()//исключение
+double Lense::aperture(dot s)//исключение
 {
-	//if (std::abs(centre[0]) > 0.0) return length / 2 / std::abs(centre[0]);
-	//else
-	return 0.5;
+	return length / 2 / (sqrt(pow(s - centre, 2).sum()));
 }
 
 std::valarray<double> Lense::intersection(Ray& ray, double r)

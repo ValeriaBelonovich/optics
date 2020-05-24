@@ -2,11 +2,11 @@
 
 
 
-System::System(json & j)
+System::System(json & j) 
 {
 	for (auto i : j["lens"])
 	{
-		system.push_back(Lense(i));
+		system.emplace_back(new Lense(i));
 	}
 
 	for (auto i : j["sour"])
@@ -18,6 +18,32 @@ System::System(json & j)
 	dy = j["boarders"]["dy"];
 
 };
+
+Ray System::boarders(Ray& ray)
+{
+	Ray result = ray;
+	auto t_1 = (dx - ray.begin[0]) / ray.cos[0];
+	if (boost::math::sign(t_1) < 0)
+	{
+		t_1 = (-dx - ray.begin[0]) / ray.cos[0];
+	}
+	auto t_2 = (dy - ray.begin[1]) / ray.cos[1];
+	if (boost::math::sign(t_2) < 0)
+	{
+		t_2 = (-dy - ray.begin[1]) / ray.cos[1];
+	}
+
+	t_1 = std::min(t_1, t_2);
+
+	ray.end = ray.begin + t_1 * ray.cos;
+	{
+		std::scoped_lock<std::mutex> rays_lock(m_send);
+		ray.send();
+	}
+	result.begin = { dx + 1.0,0.0,0.0 };
+
+	return result;
+}
 
 void System::trace()
 {
@@ -38,65 +64,63 @@ void System::trace()
 	
 	{
 			std::shared_lock<std::shared_mutex> rays_lock(m_system);
-			Lense lense;
+			//Lense lense;
 			double n = 4*(pow(dx,2) + pow(dy,2));
 			const double eps = 0.000000001;
 			double min_dist = n;//задается границами n
 
 			while (ray.begin[0] >= -dx && ray.begin[0] <= dx && ray.begin[1] >= -dy && ray.begin[1] <= dy) //добавить границу по z и границы dx, dy, dz и спросить от нуля ли идет отсчет
 			{
+				Ray result;
+				int current = -1;
 				for (size_t i = 0; i < system.size(); ++i) //проходимся по линзам
 				{
-					auto a = system[i].intersection(ray) - ray.begin;
-					auto dist = pow(a, 2).sum(); 
+					auto dist = pow(system[i]->intersection(ray) - ray.begin, 2).sum(); 
 					if (min_dist > dist && dist > eps)
 					{
 						min_dist = dist;
-						lense = system[i];
+						current = i;
 					}
 				}
-
-				if (min_dist != n)
+				if (current>-1)
 				{
-					{
-						try
+					
+						bool b;
 						{
 							std::scoped_lock<std::mutex> rays_lock(m_send);
-							ray = lense.refraction(ray);
+							b = system[current]->end(ray);
 						}
+						if (b)
+						 {
+							 return;
+						 }
+						 {
+							 std::scoped_lock<std::mutex> rays_lock(m_send);
+							 try 
+							 {
+								 result = system[current]->refraction(ray);
+							 }
+							 catch (Ray& r)
+							 {
+								 //ray.send();
+								 return;
+							 }
+						 }
+						 /*if (result == ray)// вроде была проверка на то тот ли это объект, но странная
+						 {
+							 ray = result;
+							 min_dist = n;
+							 continue;
+						 }*/
+					
 
-						catch(Ray ray)
-						{
-							ray.send();
-							return;
-						}
-					}
-					min_dist = n;
+					ray = result;
 				}
 				else
 				{
-
-					auto t_1 = (dx - ray.begin[0]) / ray.cos[0];
-					if (boost::math::sign(t_1) < 0)
-					{
-						t_1 = (-dx-ray.begin[0]) / ray.cos[0];
-					}
-					auto t_2 = (dy - ray.begin[1]) / ray.cos[1];
-					if (boost::math::sign(t_2) < 0)
-					{
-						t_2 = (-dy-ray.begin[1]) / ray.cos[1];
-					}
-
-					t_1 = std::min(t_1, t_2);
-
-					ray.end = ray.begin + t_1 * ray.cos;
-					{
-						std::scoped_lock<std::mutex> rays_lock(m_send);
-						ray.send();
-					}
-					ray.begin = { dx+1.0,0.0,0.0 };
-
+					ray = boarders(ray);
 				}
+
 			}
 	}
 
@@ -105,17 +129,13 @@ void System::trace()
 
 double System::saperture()
 {
-	double m = 0.0;
-	for (auto i: system)
-	{
-		if (m < i.aperture()) m = i.aperture();
-	}
-	return m;
+	//for(auto i : system) aperture();
+	return 1;
 }
 
 void System::run()
 {
-	size_t discr = 100;//задается
+	size_t discr = 1;//задается
 	for (size_t i = 0; i < sources.size(); ++i)
 	{
 		for (size_t j = 0; j < discr; ++j)
@@ -175,6 +195,7 @@ void System::run()
 				std::packaged_task<void()> task(std::bind(&System::trace, this));
 				t.futures.push_back(task.get_future());
 				t.threads.push_back(std::thread(std::move(task)));
+				new_thr = 1;
 				t.count_tasks++;
 			}
 		}

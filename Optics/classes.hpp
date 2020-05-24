@@ -26,9 +26,15 @@ class Ray
 public:
 	using dot = std::valarray<double>;
 	using vector = std::valarray<double>;
-	Ray() {};
+	Ray()
+		: begin({ 0.0,0.0,0.0 }),
+		end({ 0.0,0.0,0.0 }),
+		cos({ 0.0,0.0,0.0 })
+	{};
 	~Ray() = default;
-	void send(); // послать на отрисовку
+	void send();// послать на отрисовку
+
+	bool operator==(Ray& ray);
 
 	dot begin;
 	dot end;
@@ -36,21 +42,44 @@ public:
 	bool n = 0;
 };
 
+class Object
+{
+public:
+	Object(){};
+	virtual ~Object() {};
+	virtual std::valarray<double> intersection(Ray& ray) =0;
+	virtual Ray refraction(Ray& ray) { return ray; };
+	virtual bool end(Ray& ray) { return 0; };
+//private:
+	std::valarray<double> centre;
+};
+
+class Screen: public Object
+{
+	using dot = std::valarray<double>; 
+public:
+	Screen() {};
+
+	dot intersection(Ray& ray) override;
+	bool end(Ray& ray) override;
+	double length;
+};
+
+
 class Source
 {
 public:
 
-	Source() {};
+	Source()= default;
 	Source(json& j);
 	~Source() = default;
 	Ray produce_ray( double ap); //генерирует луч
 
 private:
 	std::valarray<double> centre;
-
 };
 
-class Lense
+class Lense : public Object 
 {
 	using dot = std::valarray<double>;
 	using vector = std::valarray<double>;
@@ -62,9 +91,9 @@ public:
 
 	~Lense() = default;
 
-	Ray refraction(Ray& ray); // преломление (выдает луч после выхода из линзы)
-	double aperture();
-	dot intersection(Ray& ray);
+	Ray refraction(Ray& ray) override; // преломление (выдает луч после выхода из линзы)
+	double aperture(dot s);
+	dot intersection(Ray& ray) override;
 
 private:
 	dot intersection(Ray& ray, double r);
@@ -72,11 +101,11 @@ private:
 	vector slu(double alpha, double beta, vector& normal, vector& ray); //решение слу для определения координат преломленного луча
 
 private:
-	dot centre; //координаты центра
-	double length = 0; //длина всей! линзы
-	double n = 0; // показатель преломления
-	double r_left = 0; //левый радиус кривизны больше нуля если линза выгнута влево
-	double r_right = 0; // правый радиус кривизны меньше нуля если выгнута вправо
+	//dot centre; //координаты центра
+	double length; //длина всей! линзы
+	double n; // показатель преломления
+	double r_left; //левый радиус кривизны больше нуля если линза выгнута влево
+	double r_right; // правый радиус кривизны меньше нуля если выгнута вправо
 };
 
 class System 
@@ -89,13 +118,14 @@ public:
 private:
 	void trace();
 	double saperture();
+	Ray boarders(Ray& ray);
 private:
 	std::vector<Source> sources;
-	std::vector<Lense> system;
+	std::vector<std::unique_ptr<Object>> system;
 	std::vector<Ray> rays;
 	std::mutex m_rays;
 	std::shared_mutex m_system;
 	std::mutex m_send;
-	double dx =0;
-	double dy =0;
+	double dx;
+	double dy;
 };
