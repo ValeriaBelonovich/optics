@@ -44,7 +44,7 @@ std::valarray<double> Lense::intersection(Ray& ray, double r)
 			{
 				result += ray.cos * t;
 			}
-			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2)//проверка на размер
+			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2) //(pow(result - centre, 2).sum() > length / 2)//проверка на размер
 			{
 				result = ray.begin;
 			}
@@ -56,7 +56,7 @@ std::valarray<double> Lense::intersection(Ray& ray, double r)
 			{
 				result += ray.cos * t;
 			}
-			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2)
+			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2)//(pow(result-centre,2).sum() > length/2)
 			{
 				result = ray.begin;
 			}
@@ -102,7 +102,21 @@ Ray Lense::refraction(Ray& ray, double r) // может быть не тольк
 
 	double alpha = acos((ray.cos * normal).sum() / sqrt(pow(normal, 2).sum() * pow(ray.cos, 2).sum()));
 	double beta;
-	if (ray.n)
+	try
+	{
+		auto s = ray.n;
+		auto p = [s](){return s ? 1 : -1; };
+		if (sin(alpha) * pow(n, p()) > 1.0) throw 0;
+		beta = asin(sin(alpha) * pow(n, p()));
+		result.n = !ray.n;
+	}
+	catch (...)
+	{
+		ray.end = intersection(ray, r);
+		ray.send();
+		throw;
+	}
+	/*if (ray.n)
 	{
 		if (sin(alpha) * n > 1.0)
 		{
@@ -123,7 +137,7 @@ Ray Lense::refraction(Ray& ray, double r) // может быть не тольк
 	{
 		beta = asin(sin(alpha) / n);
 		result.n = 1;
-	}
+	}*/
 
 	result.begin = intersection(ray, r);
 	result.cos = slu(alpha, beta, normal, ray.cos);

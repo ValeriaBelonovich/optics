@@ -29,7 +29,8 @@ public:
 	Ray()
 		: begin({ 0.0,0.0,0.0 }),
 		end({ 0.0,0.0,0.0 }),
-		cos({ 0.0,0.0,0.0 })
+		cos({ 0.0,0.0,0.0 }),
+		n(0)
 	{};
 	~Ray() = default;
 	void send();// послать на отрисовку
@@ -39,7 +40,7 @@ public:
 	dot begin;
 	dot end;
 	vector cos;
-	bool n = 0;
+	bool n;
 };
 
 class Object

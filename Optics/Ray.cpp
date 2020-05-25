@@ -26,14 +26,16 @@ void Ray::send()
 
 		boost::asio::ip::tcp::socket socket(io_service, endpoint.protocol());
 
-		//socket.connect(endpoint);
+		socket.connect(endpoint);
 
 		std::cout << ray_send << std::endl;
 
-		//boost::asio::write(socket, boost::asio::buffer(ray_send));
+		boost::asio::write(socket, boost::asio::buffer(ray_send));
 	}
 	catch (boost::system::system_error& e)
 	{
+		std::cout << e.code()<<std::endl;
+		//throw;
 		return;
 	}
 }
