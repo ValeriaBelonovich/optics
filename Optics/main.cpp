@@ -55,11 +55,10 @@ int main()
 		{
 			try
 			{
-				std::cout << "Start" << std::endl;
 
 				std::string path = connect();
 
-				std::cout << path;
+				//std::cout << path;
 
 				if (path.empty()) break;
 

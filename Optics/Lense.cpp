@@ -43,10 +43,11 @@ std::valarray<double> Lense::intersection(Ray& ray, double r)
 			if (t > eps)
 			{
 				result += ray.cos * t;
-			}
-			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2) //(pow(result - centre, 2).sum() > length / 2)//проверка на размер
-			{
-				result = ray.begin;
+				if (std::abs(result[1]) > std::abs(centre[1]) + length / 2) //(pow(result - centre, 2).sum() > length / 2)//проверка на размер
+				{
+					result = ray.begin;
+					return result;
+				}
 			}
 		}
 		else
@@ -55,10 +56,11 @@ std::valarray<double> Lense::intersection(Ray& ray, double r)
 			if (t > eps)
 			{
 				result += ray.cos * t;
-			}
-			if (std::abs(result[1]) > std::abs(centre[1]) + length / 2)//(pow(result-centre,2).sum() > length/2)
-			{
-				result = ray.begin;
+				if (std::abs(result[1]) > std::abs(centre[1]) + length / 2)//(pow(result-centre,2).sum() > length/2)
+				{
+					result = ray.begin;
+					return result;
+				}
 			}
 		}
 	}

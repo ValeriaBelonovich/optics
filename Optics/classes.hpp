@@ -46,7 +46,7 @@ public:
 class Object
 {
 public:
-	Object(){};
+	Object()=default;
 	virtual ~Object() {};
 	virtual std::valarray<double> intersection(Ray& ray) =0;
 	virtual Ray refraction(Ray& ray) { return ray; };
@@ -59,7 +59,7 @@ class Screen: public Object
 {
 	using dot = std::valarray<double>; 
 public:
-	Screen() {};
+	Screen() = default;
 
 	dot intersection(Ray& ray) override;
 	bool end(Ray& ray) override;
@@ -86,8 +86,7 @@ class Lense : public Object
 	using vector = std::valarray<double>;
 
 public:
-	Lense()
-	{}
+	Lense() = default;
 	Lense(json& j);
 
 	~Lense() = default;
@@ -112,7 +111,7 @@ private:
 class System 
 {
 public:
-	System() {};
+	//System() {};
 	System(json & j);
 	~System() = default;
 	void run();

@@ -28,13 +28,13 @@ void Ray::send()
 
 		socket.connect(endpoint);
 
-		std::cout << ray_send << std::endl;
+		//std::cout << ray_send << std::endl;
 
 		boost::asio::write(socket, boost::asio::buffer(ray_send));
 	}
 	catch (boost::system::system_error& e)
 	{
-		std::cout << e.code()<<std::endl;
+		//std::cout << e.code()<<std::endl;
 		//throw;
 		return;
 	}
