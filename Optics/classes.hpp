@@ -33,7 +33,7 @@ public:
 		n(0)
 	{};
 	~Ray() = default;
-	void send();// послать на отрисовку
+	std::string send();// послать на отрисовку
 
 	bool operator==(Ray& ray);
 
@@ -50,7 +50,7 @@ public:
 	virtual ~Object() {};
 	virtual std::valarray<double> intersection(Ray& ray) =0;
 	virtual Ray refraction(Ray& ray) { return ray; };
-	virtual bool end(Ray& ray) { return 0; };
+	virtual std::string end(Ray& ray) { return ""; };
 //private:
 	std::valarray<double> centre;
 };
@@ -62,10 +62,9 @@ public:
 	Screen() = default;
 
 	dot intersection(Ray& ray) override;
-	bool end(Ray& ray) override;
+	std::string end(Ray& ray) override;
 	double length;
 };
-
 
 class Source
 {
@@ -128,4 +127,18 @@ private:
 	std::mutex m_send;
 	double dx;
 	double dy;
+	Service io_service;
+};
+
+class Service
+{
+public:
+	Service():socket(io_service)
+	{}
+	std::string read();
+	void write(std::string &s);
+
+private:
+	boost::asio::io_service io_service;
+	boost::asio::ip::tcp::socket socket;
 };

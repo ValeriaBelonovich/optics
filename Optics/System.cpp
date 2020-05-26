@@ -38,7 +38,8 @@ Ray System::boarders(Ray& ray)
 	ray.end = ray.begin + t_1 * ray.cos;
 	{
 		std::scoped_lock<std::mutex> rays_lock(m_send);
-		ray.send();
+		auto s = ray.send();
+		io_service.write(s);
 	}
 	result.begin = { dx + 1.0,0.0,0.0 };
 

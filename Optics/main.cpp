@@ -4,61 +4,17 @@
 
 using nlohmann::json;
 
-std::string connect()
-{
-	std::string result;
 
-	const std::size_t size = 1;
-
-	auto port = 3333;
-
-	boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address_v4::any(), port);
-
-	boost::asio::io_service io_service;
-
-
-	try
-	{
-		boost::asio::ip::tcp::acceptor acceptor(io_service, endpoint.protocol());
-
-		acceptor.bind(endpoint);
-
-		acceptor.listen(size);
-
-		boost::asio::ip::tcp::socket socket(io_service);
-
-		acceptor.accept(socket);
-
-		boost::asio::streambuf buffer;
-
-		boost::asio::read_until(socket, buffer, '!');
-
-		std::istream input_stream(&buffer);
-		std::getline(input_stream, result, '!');
-
-		//socket.close();
-		//acceptor.close();
-
-	}
-	catch (boost::system::system_error& e)
-	{
-		throw;
-		//return e.code().value();//будем перебрасывать ошибку в main
-	}
-
-	return result;
-
-}
 int main()
 {
-		while (true)
+		/*while (true)
 		{
 			try
-			{
+			{*/
 
-				std::string path = connect();
+				/*std::string path = connect();
 
-				//std::cout << path;
+				std::cout << path<<"\n";
 
 				if (path.empty()) break;
 
@@ -66,7 +22,7 @@ int main()
 
 				System sys(j);
 
-				sys.run();
+				sys.run();*/
 
 				//std::filesystem::path path_input = "C:/Users/lbelo/save (1).txt";
 
@@ -80,7 +36,7 @@ int main()
 				////std::cout << j;
 				//System sys(j);
 
-				sys.run();
+			/*	sys.run();
 			}
 			catch (boost::system::system_error& e)
 			{
@@ -92,6 +48,14 @@ int main()
 				std::cout << "error";
 				return 0;
 			}
-		}
+		}*/
+
+	Service io_service = Service();
+	std::string s = io_service.read();
+	std::cout << s;
+	s = "return back";
+	io_service.write(s);
+	s = "!";
+	io_service.write(s);
 }
 	

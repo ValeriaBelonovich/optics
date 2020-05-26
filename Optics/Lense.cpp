@@ -118,29 +118,6 @@ Ray Lense::refraction(Ray& ray, double r) // может быть не тольк
 		ray.send();
 		throw;
 	}
-	/*if (ray.n)
-	{
-		if (sin(alpha) * n > 1.0)
-		{
-
-			result.begin = intersection(ray, r);
-			result.cos = { 0,0,0 };
-			result.end = result.begin;
-			throw result;
-
-		}
-		else
-		{
-			beta = asin(sin(alpha) * n);
-			result.n = 0;
-		}
-	}
-	else
-	{
-		beta = asin(sin(alpha) / n);
-		result.n = 1;
-	}*/
-
 	result.begin = intersection(ray, r);
 	result.cos = slu(alpha, beta, normal, ray.cos);
 	ray.end = result.begin;
